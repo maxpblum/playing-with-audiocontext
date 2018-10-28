@@ -58,7 +58,7 @@ const runMusic = () => {
   repeatingGroove(8);
 };
 
-const button = window.document.body.createElement(button);
+const button = window.document.createElement('button');
 button.innerText = 'Play';
 button.addEventListener('click', runMusic());
 window.document.body.appendChild(button);
