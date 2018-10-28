@@ -1,62 +1,4 @@
-// Define some useful just intervals. Not equal temperament.
-const I = {};
-const down = (interval) => 1 / interval;
-I.P8 = 2.0;
-I.P5  = 3.0 * down(I.P8);
-I.P4 = 2.0 * down(I.P5);
-I.M3 = 5.0 * down(2 * I.P8);
-I.m3 = I.P5 * down(I.M3);
-I.M6 = 2.0 * down(I.m3);
-I.m6 = 2.0 * down(I.M3);
-
-// A major second based specifically on V / V.
-I.M2 = I.P5 * I.P5 * down(I.P8);
-// A minor second based on the difference between I.M2 and I.m3.
-I.m2 = I.m3 / I.M2;
-
-// A minor seventh based on IV / IV.
-I.m7 = I.P4 * I.P4;
-// A major seventh based on the third of V.
-I.M7 = I.P5 * I.M3;
-
-// In MIDI numbers, concert A is 69.
-const CONCERT_A_MIDI_NUMBER = 69;
-
-const up_semitones = (freq, n) => freq * Math.pow(2, (n / 12));
-const midi_freq = (midiNumber) => up_semitones(440, midiNumber - CONCERT_A_MIDI_NUMBER);
-
-const _noteNames = [
-  ['C'],
-  ['C#', 'Db'],
-  ['D'],
-  ['D#', 'Eb'],
-  ['E'],
-  ['F'],
-  ['F#', 'Gb'],
-  ['G'],
-  ['G#', 'Ab'],
-  ['A'],
-  ['A#', 'Bb'],
-  ['B'],
-];
-
-// Define the equal-temperament notes.
-const N = {}
-_noteNames.forEach((equiv_names, i) => {
-  // The first that appears is C, which is concert A - 9 semitones.
-  const midiNumber = CONCERT_A_MIDI_NUMBER - 9 + i;
-  equiv_names.forEach(name => {
-    N[name + '4'] = midi_freq(midiNumber);
-    [3, 2, 1].forEach(octave => {
-      N[name + octave] = N[name + (octave + 1)] / 2.0;
-    });
-    [5, 6, 7, 8].forEach(octave => {
-      N[name + octave] = N[name + (octave - 1)] * 2.0;
-    });
-  });
-});
-
-const chords = (() => {
+const runMusic = () => {
   // Define a local "palette" of pitches using just intonation.
   // Not necessary, just more fun than ET.
   const a2 = N.A2;
@@ -68,11 +10,15 @@ const chords = (() => {
   const e5 = e4 * I.P8;
   const g2 = c3 * down(I.P4);
   const g4 = g2 * 2 * I.P8;
+  const g5 = g4 * I.P8;
+  const g6 = g5 * I.P8;
   const b4 = g4 * I.M3;;
+  const b5 = b4 * I.P8;
   const d4 = g4 * down(I.P4);
   const d5 = d4 * I.P8;
+  const d6 = d5 * I.P8;
 
-  return [
+  const chords = [
     [a2, a3, e4, a4], // A open fifth
     [c3, e4, g4, c5], // C major
     [g2, d4, g4, b4], // G major
@@ -80,29 +26,23 @@ const chords = (() => {
     [c3, g4, c5, e5], // C major (higher voicing)
     [g2, g4, b4, d5], // G major (higher voicing)
   ];
-})();
 
-// {tempo} in BPM.
-const getTimeAtBeat = (beat, tempo) => beat * 60 / tempo;
-
-const runMusic = () => {
   const ctx = new AudioContext();
-  const oscs = chords[0].map(() => ctx.createOscillator());
+  const oscs = new OscillatorGroup(ctx, 4);
 
   const gn = ctx.createGain();
   gn.connect(ctx.destination);
-  oscs.forEach((o, i) => {
-    o.type = 'triangle';
-    o.connect(gn);
-    o.start(0);
-    o.frequency.setValueAtTime(chords[0][i], getTimeAtBeat(0, 140));
-    o.frequency.setValueAtTime(chords[1][i], getTimeAtBeat(4, 140));
-    o.frequency.setValueAtTime(chords[2][i], getTimeAtBeat(6, 140));
-    o.frequency.setValueAtTime(chords[3][i], getTimeAtBeat(8, 140));
-    o.frequency.setValueAtTime(chords[4][i], getTimeAtBeat(12, 140));
-    o.frequency.setValueAtTime(chords[5][i], getTimeAtBeat(14, 140));
-    o.stop(getTimeAtBeat(16, 140));
+
+  oscs.setType('triangle');
+  oscs.connect(gn);
+  oscs.start(0);
+  [0, 4, 6, 8, 12, 14].forEach((beat, i) => {
+    oscs.setChordAtTime(chords[i], getTimeAtBeat(beat, 140));
   });
+  [0, 4, 6, 8, 12, 14].forEach((beat, i) => {
+    oscs.setChordAtTime(chords[i], getTimeAtBeat(beat + 16, 140));
+  });
+  oscs.stop(getTimeAtBeat(32, 140));
 
   // Play a chord by flipping the gain on at a set beat, for a set number of beats.
   // (The pitches will be whatever the oscillators are set to at that time.)
@@ -134,9 +74,39 @@ const runMusic = () => {
     twoLongerHits(startBeat + 6);
   };
 
-  // Do that rhythm twice.
   repeatingGroove(0);
   repeatingGroove(8);
+  repeatingGroove(16);
+  repeatingGroove(24);
+
+  // Bass.
+  const bass = new Instrument(ctx, 'triangle', [1, 0.75, 0.5, 0.25, 0.15, 0.15]);
+  bass.connect(ctx.destination);
+
+  // Define bass pitches
+  const a1 = a2 * down(I.P8);
+  const c2 = c3 * down(I.P8);
+  const g1 = g2 * down(I.P8);
+  bass.setValueAtTime(a1, getTimeAtBeat(16, 140));
+  bass.setValueAtTime(c2, getTimeAtBeat(20, 140));
+  bass.setValueAtTime(g1, getTimeAtBeat(22, 140));
+  bass.setValueAtTime(a1, getTimeAtBeat(24, 140));
+  bass.setValueAtTime(c2, getTimeAtBeat(28, 140));
+  bass.setValueAtTime(g1, getTimeAtBeat(30, 140));
+
+  bass.start(getTimeAtBeat(16, 140));
+  bass.stop(getTimeAtBeat(32, 140));
+
+  const arpeggioRow = [g6, d6, b5, g5, d5, b4, d6, b5, g5, d5, b4, g4];
+  const arpeggioOsc = ctx.createOscillator();
+  arpeggioOsc.type = 'triangle';
+  const arpeggioGain = ctx.createGain();
+  arpeggioGain.connect(ctx.destination);
+  arpeggioOsc.connect(arpeggioGain);
+  arpeggioGain.gain.value = 0.6;
+  arpeggioOsc.start(getTimeAtBeat(30, 140));
+  arpeggiate(arpeggioOsc.frequency, arpeggioRow, (1/6), 140, 30);
+  arpeggioOsc.stop(getTimeAtBeat(32, 140));
 };
 
 const button = window.document.createElement('button');
