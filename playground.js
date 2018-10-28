@@ -60,5 +60,5 @@ const runMusic = () => {
 
 const button = window.document.createElement('button');
 button.innerText = 'Play';
-button.addEventListener('click', runMusic());
+button.addEventListener('click', runMusic);
 window.document.body.appendChild(button);
