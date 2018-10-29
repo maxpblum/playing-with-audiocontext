@@ -1,3 +1,9 @@
+import Instrument from './lib/instrument.mjs';
+import N from './lib/pitches.mjs';
+import OscillatorGroup from './lib/oscillator_group.mjs';
+import {arpeggiate, getTimeAtBeat} from './lib/utils.mjs';
+import {I, down} from './lib/intervals.mjs';
+
 const runMusic = () => {
   // Define a local "palette" of pitches using just intonation.
   // Not necessary, just more fun than ET.
