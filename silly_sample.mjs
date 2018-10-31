@@ -112,4 +112,7 @@ class ImaginaryPiece extends Piece {
   }
 }
 
-window.piece = new ImaginaryPiece();
+const button = window.document.createElement('button');
+button.innerText = 'Play';
+button.addEventListener('click', () => (new ImaginaryPiece()).schedulePiece());
+window.document.body.appendChild(button);
