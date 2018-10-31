@@ -130,6 +130,11 @@ class ImaginaryPiece extends Piece {
     };
   }
 
+  getTimeAtBeat(beat) {
+    const tempo = 100;
+    return getTimeAtBeat(beat, tempo);
+  }
+
   // {n} will be the output from getPallete().
   // {i} will be the output from getInstruments().
   getScore(n, i) {
@@ -143,10 +148,10 @@ class ImaginaryPiece extends Piece {
       },
     });
     const bassGroove = Seq(
-      this.heldNote(i.bass.play(n.eb1), 2, 160),
-      this.heldNote(i.bass.play(n.g1), 2, 160),
-      this.heldNote(i.bass.play(n.ab1), 2, 160),
-      this.heldNote(i.bass.play(n.f1), 2, 160),
+      this.heldNote(i.bass.play(n.eb1), 2),
+      this.heldNote(i.bass.play(n.g1), 2),
+      this.heldNote(i.bass.play(n.ab1), 2),
+      this.heldNote(i.bass.play(n.f1), 2),
     );
     const groove = Simul(
         bassGroove,
@@ -160,34 +165,35 @@ class ImaginaryPiece extends Piece {
     return groove;
   }
 
-  heldNote(notePlayer, beats, tempo) {
+  heldNote(notePlayer, beats) {
     // TODO: Somehow modify the heldNote API so tempo fluctuations are possible.
     return Note(
-      (startTime) => notePlayer(startTime, startTime + getTimeAtBeat(beats, tempo)),
+      (startTime) => notePlayer(startTime, startTime + this.getTimeAtBeat(beats)),
       beats,
     );
   }
 
-  scheduleEvent(beatsElapsed, event) {
+  scheduleEvent(beatsElapsed, event, schedule) {
     if (beatsElapsed === null) {
       throw new Exception('Expected a number, found beatsElapsed = null');
     }
     if (event.type === 'note') {
-      event.fn(getTimeAtBeat(beatsElapsed, 160));
+      const startTime = this.getTimeAtBeat(beatsElapsed);
+      schedule.push({fn: event.fn, startTime});
     } else if (event.type === 'simul') {
       // event is a list of simultaneous events
-      event.events.forEach(e => this.scheduleEvent(beatsElapsed, e));
+      event.events.forEach(e => this.scheduleEvent(beatsElapsed, e, schedule));
     } else if (event.type === 'seq') {
       // event is a sequence of events
       event.events.reduce((elapsed, ev) => {
-        this.scheduleEvent(elapsed, ev);
+        this.scheduleEvent(elapsed, ev, schedule);
         return elapsed + ev.duration;
       }, beatsElapsed);
     } else {
       // event is an object with a duration and an events object.
       for (let relativeBeatKey in event.events) {
         const relativeBeat = Number(relativeBeatKey);
-        this.scheduleEvent(beatsElapsed + relativeBeat, event.events[relativeBeat]);
+        this.scheduleEvent(beatsElapsed + relativeBeat, event.events[relativeBeat], schedule);
       }
     }
   }
@@ -197,7 +203,14 @@ class ImaginaryPiece extends Piece {
     const instruments = this.getInstruments();
     const instrumentList = Object.values(instruments);
     instrumentList.forEach(i => i.initialize(ctx, ctx.destination));
-    this.scheduleEvent(0, this.getScore(this.getPalette(), instruments));
+    const schedule = [];
+    this.scheduleEvent(0, this.getScore(this.getPalette(), instruments), schedule);
+
+    // Guarantee that all events will be called in chronological order.
+    // This will help with instruments that need to handle events in order.
+    schedule.sort((timeA, timeB) => timeA - timeB);
+    schedule.forEach(({fn, startTime}) => fn(startTime));
+
     instrumentList.forEach(i => i.start(0));
   }
 }
