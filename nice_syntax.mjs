@@ -1,6 +1,7 @@
 import {I, down} from './lib/intervals.mjs';
 import N from './lib/pitches.mjs';
 import {getTimeAtBeat} from './lib/utils.mjs';
+import Instrument from './lib/instrument.mjs';
 
 const Note = (fn, duration=null) => ({
   type: 'note',
@@ -63,28 +64,42 @@ class Bass {
 
 class Kick {
   initialize(ctx, destination) {
+    this.frequencyStart = 55;
+
     this.gain = ctx.createGain();
+    this.gain.gain.value = 0;
     this.gain.connect(destination);
 
-    this.osc = ctx.createOscillator();
-    this.osc.type = 'triangle';
-    this.osc.frequency.value = 440;
-    this.osc.connect(this.gain);
+    this.insts = [];
+    [0, 1].forEach(i => {
+      this.insts.push(new Instrument(ctx, 'sine',
+        [0.7, 0.5, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.005]));
+      this.insts[i].setValue(this.frequencyStart);
+      this.insts[i].connect(this.gain);
+    });
+
+    this.nextInst = 0;
   }
 
   kick() {
     return (startTime) => {
-      this.gain.gain.setTargetAtTime(0.75, startTime, 0.005);
-      this.gain.gain.setTargetAtTime(0, startTime + 0.2, 0.03);
+      const inst = this.insts[this.nextInst];
+      inst.setValueAtTime(this.frequencyStart, startTime);
+      inst.setValueAtTime(this.frequencyStart, startTime + 0.03);
+      this.gain.gain.setValueAtTime(0, startTime);
+      this.gain.gain.linearRampToValueAtTime(0.75, startTime + 0.01, 0.005);
+      this.gain.gain.linearRampToValueAtTime(0, startTime + 0.12);
+      inst.exponentialRampToValueAtTime(this.frequencyStart * 0.6, startTime + 0.12);
+      this.nextInst = (this.nextInst + 1) % this.insts.length;
     };
   }
 
   start(time) {
-    this.osc.start(time);
+    this.insts.forEach(i => i.start(time));
   }
 
   stop(time) {
-    this.osc.stop(time);
+    this.insts.forEach(i => i.stop(time));
     this.gain.stop(time);
   }
 }
