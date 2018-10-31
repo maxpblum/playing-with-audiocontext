@@ -67,16 +67,19 @@ class Kick {
   initialize(ctx, destination) {
     this.frequencyStart = 55;
 
-    this.gain = ctx.createGain();
-    this.gain.gain.value = 0;
-    this.gain.connect(destination);
+    this.gains = [];
+    [0, 1].forEach(i => {
+      this.gains.push(ctx.createGain());
+      this.gains[i].gain.value = 0;
+      this.gains[i].connect(destination);
+    });
 
     this.insts = [];
     [0, 1].forEach(i => {
       this.insts.push(new Instrument(ctx, 'sine',
         [0.7, 0.5, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.005]));
       this.insts[i].setValue(this.frequencyStart);
-      this.insts[i].connect(this.gain);
+      this.insts[i].connect(this.gains[i]);
     });
 
     this.nextInst = 0;
@@ -87,9 +90,9 @@ class Kick {
       const inst = this.insts[this.nextInst];
       inst.setValueAtTime(this.frequencyStart, startTime);
       inst.setValueAtTime(this.frequencyStart, startTime + 0.03);
-      this.gain.gain.setValueAtTime(0, startTime);
-      this.gain.gain.linearRampToValueAtTime(0.75, startTime + 0.01, 0.005);
-      this.gain.gain.linearRampToValueAtTime(0, startTime + 0.12);
+      this.gains[this.nextInst].gain.setValueAtTime(0, startTime);
+      this.gains[this.nextInst].gain.linearRampToValueAtTime(0.75, startTime + 0.01, 0.005);
+      this.gains[this.nextInst].gain.linearRampToValueAtTime(0, startTime + 0.12);
       inst.exponentialRampToValueAtTime(this.frequencyStart * 0.6, startTime + 0.12);
       this.nextInst = (this.nextInst + 1) % this.insts.length;
     };
@@ -101,7 +104,7 @@ class Kick {
 
   stop(time) {
     this.insts.forEach(i => i.stop(time));
-    this.gain.stop(time);
+    this.gains.forEach(g => g.stop(time));
   }
 }
 
