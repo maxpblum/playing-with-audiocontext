@@ -35,6 +35,7 @@ class Snare {}
 class Bass {
   initialize(ctx, destination) {
     this.gain = ctx.createGain();
+    this.gain.gain.value = 0;
     this.gain.connect(destination);
 
     this.osc = ctx.createOscillator();
