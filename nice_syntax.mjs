@@ -74,33 +74,36 @@ class Kick {
       this.gains[i].connect(destination);
     });
 
-    this.inst = new Instrument(
-      ctx, 'sine', [0.7, 0.5, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.005]);
-    this.inst.setValue(this.frequencyStart);
+    this.insts = [];
+    [0, 1].forEach(i => {
+      this.insts.push(new Instrument(ctx, 'sine',
+        [0.7, 0.5, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.005]));
+      this.insts[i].setValue(this.frequencyStart);
+      this.insts[i].connect(this.gains[i]);
+    });
 
-    this.gains.forEach(g => this.inst.connect(g));
-
-    this.nextGain = 0;
+    this.nextInst = 0;
   }
 
   kick() {
     return (startTime) => {
-      this.inst.setValueAtTime(this.frequencyStart, startTime);
-      this.inst.setValueAtTime(this.frequencyStart, startTime + 0.03);
-      this.gains[this.nextGain].gain.setValueAtTime(0, startTime);
-      this.gains[this.nextGain].gain.linearRampToValueAtTime(0.75, startTime + 0.01, 0.005);
-      this.gains[this.nextGain].gain.linearRampToValueAtTime(0, startTime + 0.12);
-      this.inst.exponentialRampToValueAtTime(this.frequencyStart * 0.6, startTime + 0.12);
-      this.nextGain = (this.nextGain + 1) % this.gains.length;
+      const inst = this.insts[this.nextInst];
+      inst.setValueAtTime(this.frequencyStart, startTime);
+      inst.setValueAtTime(this.frequencyStart, startTime + 0.03);
+      this.gains[this.nextInst].gain.setValueAtTime(0, startTime);
+      this.gains[this.nextInst].gain.linearRampToValueAtTime(0.75, startTime + 0.01, 0.005);
+      this.gains[this.nextInst].gain.linearRampToValueAtTime(0, startTime + 0.12);
+      inst.exponentialRampToValueAtTime(this.frequencyStart * 0.6, startTime + 0.12);
+      this.nextInst = (this.nextInst + 1) % this.insts.length;
     };
   }
 
   start(time) {
-    this.inst.start(time);
+    this.insts.forEach(i => i.start(time));
   }
 
   stop(time) {
-    this.inst.stop(time);
+    this.insts.forEach(i => i.stop(time));
     this.gains.forEach(g => g.stop(time));
   }
 }
