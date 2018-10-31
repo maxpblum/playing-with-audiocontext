@@ -71,37 +71,60 @@ class Kick {
     this.gain.gain.value = 0;
     this.gain.connect(destination);
 
-    this.insts = [];
-    [0, 1].forEach(i => {
-      this.insts.push(new Instrument(ctx, 'sine',
-        [0.7, 0.5, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.005]));
-      this.insts[i].setValue(this.frequencyStart);
-      this.insts[i].connect(this.gain);
-    });
-
-    this.nextInst = 0;
+    this.inst = new Instrument(ctx, 'sine',
+      [0.7, 0.5, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.005]);
+    this.inst.setValue(this.frequencyStart);
+    this.inst.connect(this.gain);
   }
 
   kick() {
     return (startTime) => {
-      const inst = this.insts[this.nextInst];
-      inst.setValueAtTime(this.frequencyStart, startTime);
-      inst.setValueAtTime(this.frequencyStart, startTime + 0.03);
+      this.inst.setValueAtTime(this.frequencyStart, startTime);
+      this.inst.setValueAtTime(this.frequencyStart, startTime + 0.03);
       this.gain.gain.setValueAtTime(0, startTime);
       this.gain.gain.linearRampToValueAtTime(0.75, startTime + 0.01, 0.005);
       this.gain.gain.linearRampToValueAtTime(0, startTime + 0.12);
-      inst.exponentialRampToValueAtTime(this.frequencyStart * 0.6, startTime + 0.12);
-      this.nextInst = (this.nextInst + 1) % this.insts.length;
+      this.inst.exponentialRampToValueAtTime(this.frequencyStart * 0.6, startTime + 0.12);
     };
   }
 
   start(time) {
-    this.insts.forEach(i => i.start(time));
+    this.inst.start(time);
   }
 
   stop(time) {
-    this.insts.forEach(i => i.stop(time));
+    this.inst.stop(time);
     this.gain.stop(time);
+  }
+}
+
+class PolyphonicKick {
+  constructor(polyphony) {
+    this.polyphony = polyphony;
+  }
+
+  initialize(ctx, destination) {
+    this.kicks = [];
+    for (let i = 0; i < this.polyphony; i++) {
+      this.kicks.push(new Kick());
+    }
+    this.kicks.forEach(k => k.initialize(ctx, destination));
+    this.nextKick = 0;
+  }
+
+  kick() {
+    return (startTime) => {
+      this.kicks[this.nextKick].kick()(startTime);
+      this.nextKick = (this.nextKick + 1) % this.kicks.length;
+    };
+  }
+
+  start(time) {
+    this.kicks.forEach(k => k.start(time));
+  }
+
+  stop(time) {
+    this.kicks.forEach(k => k.stop(time));
   }
 }
 
@@ -142,7 +165,7 @@ class ImaginaryPiece extends Piece {
       // pinger: new Pinger(),
       bass:   new Bass(),
       // snare:  new Snare(),
-      kick:   new Kick(),
+      kick:   new PolyphonicKick(2),
     };
   }
 
