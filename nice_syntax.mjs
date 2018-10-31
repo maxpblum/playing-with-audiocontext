@@ -4,12 +4,12 @@ import {getTimeAtBeat} from './lib/utils.mjs';
 import Instrument from './lib/instrument.mjs';
 
 const times = (count, x) => {
-	const output = [];
-	for (let i = 0; i < count; i++) {
-		output.push(x);
-	}
-	console.log('returning ', output);
-	return output;
+  const output = [];
+  for (let i = 0; i < count; i++) {
+    output.push(x);
+  }
+  console.log('returning ', output);
+  return output;
 };
 
 const Note = (fn, duration=null) => ({
@@ -40,45 +40,45 @@ class Piece {}
 
 class SnareEffect {
   initialize(ctx, destination, gainTarget) {
-		// Pink noise code adapted from https://noisehack.com/generate-noise-web-audio-api/
-		const bufferSize = 4096;
-		this.pinkNoise = (() => {
-			let b0, b1, b2, b3, b4, b5, b6;
-			b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
-			const node = ctx.createScriptProcessor(bufferSize, 1, 1);
-			node.onaudioprocess = function(e) {
-					var output = e.outputBuffer.getChannelData(0);
-					for (var i = 0; i < bufferSize; i++) {
-							var white = Math.random() * 2 - 1;
-							b0 = 0.99886 * b0 + white * 0.0555179;
-							b1 = 0.99332 * b1 + white * 0.0750759;
-							b2 = 0.96900 * b2 + white * 0.1538520;
-							b3 = 0.86650 * b3 + white * 0.3104856;
-							b4 = 0.55000 * b4 + white * 0.5329522;
-							b5 = -0.7616 * b5 - white * 0.0168980;
-							output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-							output[i] *= 0.11; // (roughly) compensate for gain
-							b6 = white * 0.115926;
-					}
-			}
-			return node;
-		})();
+    // Pink noise code adapted from https://noisehack.com/generate-noise-web-audio-api/
+    const bufferSize = 4096;
+    this.pinkNoise = (() => {
+      let b0, b1, b2, b3, b4, b5, b6;
+      b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+      const node = ctx.createScriptProcessor(bufferSize, 1, 1);
+      node.onaudioprocess = function(e) {
+          var output = e.outputBuffer.getChannelData(0);
+          for (var i = 0; i < bufferSize; i++) {
+              var white = Math.random() * 2 - 1;
+              b0 = 0.99886 * b0 + white * 0.0555179;
+              b1 = 0.99332 * b1 + white * 0.0750759;
+              b2 = 0.96900 * b2 + white * 0.1538520;
+              b3 = 0.86650 * b3 + white * 0.3104856;
+              b4 = 0.55000 * b4 + white * 0.5329522;
+              b5 = -0.7616 * b5 - white * 0.0168980;
+              output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+              output[i] *= 0.11; // (roughly) compensate for gain
+              b6 = white * 0.115926;
+          }
+      }
+      return node;
+    })();
 
-		this.filter = ctx.createBiquadFilter();
-		this.filter.type = 0; // Low-pass filter
-		this.filter.frequency.value = 880; // Cut-off point.
+    this.filter = ctx.createBiquadFilter();
+    this.filter.type = 0; // Low-pass filter
+    this.filter.frequency.value = 880; // Cut-off point.
 
-		this.gainTarget = gainTarget;
-		this.gain = ctx.createGain();
-		this.gain.gain.value = 0;
+    this.gainTarget = gainTarget;
+    this.gain = ctx.createGain();
+    this.gain.gain.value = 0;
 
-		this.pinkNoise.connect(this.filter);
-		this.filter.connect(this.gain);
-		this.gain.connect(destination);
-	}
+    this.pinkNoise.connect(this.filter);
+    this.filter.connect(this.gain);
+    this.gain.connect(destination);
+  }
 
-	snare() {
-		return (startTime) => {
+  snare() {
+    return (startTime) => {
       this.gain.gain.setValueAtTime(this.gainTarget, startTime);
       this.gain.gain.setTargetAtTime(0, startTime + 0.07, 0.07);
     };
@@ -134,9 +134,9 @@ class Snare {
       this.partials.push(new SnarePartial());
       this.partials[i].initialize(ctx, destination, ...d);
     });
-		const snareEffect = new SnareEffect();
-		snareEffect.initialize(ctx, destination, 0.8);
-		this.partials.push(snareEffect);
+    const snareEffect = new SnareEffect();
+    snareEffect.initialize(ctx, destination, 0.8);
+    this.partials.push(snareEffect);
   }
 
   snare() {
@@ -360,11 +360,11 @@ class ImaginaryPiece extends Piece {
       duration: 2,
       events: {
         0: Note(i.kick.kick()),
-				0.5: Note(i.snare.snare()),
+        0.5: Note(i.snare.snare()),
         0.83: Note(i.kick.kick()),
         1.33: Note(i.kick.kick()),
         1.5: Note(i.kick.kick()),
-				1.5: Note(i.snare.snare()),
+        1.5: Note(i.snare.snare()),
       },
     });
     const pings = Chunk({
@@ -380,23 +380,23 @@ class ImaginaryPiece extends Piece {
         2.04:    Note(i.pinger.ping(n.eb4)),
       },
     });
-		const laterPings = Chunk({
-			duration: 4,
-			events: {
-				0: Note(i.pinger.ping(n.eb5)),
-				0.31: Note(i.pinger.ping(n.d5)),
-				0.54: Note(i.pinger.ping(n.eb5)),
-				0.83: Note(i.pinger.ping(n.f5)),
-				1.04: Note(i.pinger.ping(n.eb5)),
-				1.29: Note(i.pinger.ping(n.f5)),
-				1.54: Note(i.pinger.ping(n.f5)),
-				1.65: Note(i.pinger.ping(n.g5)),
-				2.54: Note(i.pinger.ping(n.eb5)),
-				2.95: Note(i.pinger.ping(n.bb4)),
-				3.05: Note(i.pinger.ping(n.c5)),
-				3.54: Note(i.pinger.ping(n.bb4)),
-			},
-		});
+    const laterPings = Chunk({
+      duration: 4,
+      events: {
+        0: Note(i.pinger.ping(n.eb5)),
+        0.31: Note(i.pinger.ping(n.d5)),
+        0.54: Note(i.pinger.ping(n.eb5)),
+        0.83: Note(i.pinger.ping(n.f5)),
+        1.04: Note(i.pinger.ping(n.eb5)),
+        1.29: Note(i.pinger.ping(n.f5)),
+        1.54: Note(i.pinger.ping(n.f5)),
+        1.65: Note(i.pinger.ping(n.g5)),
+        2.54: Note(i.pinger.ping(n.eb5)),
+        2.95: Note(i.pinger.ping(n.bb4)),
+        3.05: Note(i.pinger.ping(n.c5)),
+        3.54: Note(i.pinger.ping(n.bb4)),
+      },
+    });
     const bassGroove = Seq(
       this.heldNote(i.bass.play(n.eb1), 2),
       this.heldNote(i.bass.play(n.g1), 2),
@@ -404,11 +404,11 @@ class ImaginaryPiece extends Piece {
       this.heldNote(i.bass.play(n.f1), 2),
     );
     const groove = Simul(
-			Seq(...times(2, bassGroove)),
-			Seq(...times(8, drumGroove)),
-			Seq(pings, pings, laterPings, laterPings),
+      Seq(...times(2, bassGroove)),
+      Seq(...times(8, drumGroove)),
+      Seq(pings, pings, laterPings, laterPings),
     );
-		return groove;
+    return groove;
   }
 
   heldNote(notePlayer, beats) {
