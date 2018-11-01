@@ -4,7 +4,7 @@ import {ChordYeller} from './lib/instruments/chord_yeller.mjs';
 import {Twinkler} from './lib/instruments/twinkler.mjs';
 import {NoiseBass} from './lib/instruments/noise_bass.mjs';
 import Piece from './lib/piece.mjs';
-import {getTimeAtBeat, Chunk, Seq, Simul} from './lib/utils.mjs';
+import {getTimeAtBeat, Chunk, Seq, Simul, Note} from './lib/utils.mjs';
 
 class FunSamplePiece extends Piece {
   getTimeAtBeat(beat) {
@@ -65,13 +65,13 @@ class FunSamplePiece extends Piece {
     const chordWithRhythm = (chord, rhythm) => {
       const events = {};
       rhythm.forEach(([start, duration]) => {
-        events[start] = this.heldNote(i.chordYeller.yellChord(chord), duration);
+        events[start] = Note('chordYeller', 'yellChord', chord, duration);
       });
       return Chunk({duration: 2, events});
     };
 
     const twinkleNotes = [n.g6, n.d6, n.b5, n.g5, n.d5, n.b4, n.d6, n.b5, n.g5, n.d5, n.b4, n.g4];
-    const twinkleArpeggio = this.heldNote(i.twinkler.arpeggiate(twinkleNotes), 2);
+    const twinkleArpeggio = Note('twinkler', 'arpeggiate', twinkleNotes, 2);
 
     const chordGroove = Seq(
       chordWithRhythm(n.chords[0], funRhythm),
@@ -85,9 +85,9 @@ class FunSamplePiece extends Piece {
     );
 
     const bassGroove = Seq(
-      this.heldNote(i.noiseBass.play(n.a1), 4),
-      this.heldNote(i.noiseBass.play(n.c2), 2),
-      this.heldNote(i.noiseBass.play(n.g1), 2),
+      Note('noiseBass', 'play', n.a1, 4),
+      Note('noiseBass', 'play', n.c2, 2),
+      Note('noiseBass', 'play', n.g1, 2),
     );
 
     return Simul(
