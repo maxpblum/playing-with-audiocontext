@@ -1,10 +1,11 @@
+import {withPolyphony} from './lib/instrument.mjs';
 import {I, down} from './lib/intervals.mjs';
 import N from './lib/pitches.mjs';
 import {getTimeAtBeat, times, Note, Simul, Seq, Chunk} from './lib/utils.mjs';
 import {Snare} from './lib/instruments/snare.mjs';
 import {Bass} from './lib/instruments/bass.mjs';
-import {PolyphonicKick} from './lib/instruments/kick.mjs';
-import {PolyphonicPinger} from './lib/instruments/pinger.mjs';
+import {Kick} from './lib/instruments/kick.mjs';
+import {Pinger} from './lib/instruments/pinger.mjs';
 import Piece from './lib/piece.mjs';
 
 class ImaginaryPiece extends Piece {
@@ -41,10 +42,10 @@ class ImaginaryPiece extends Piece {
 
   getInstruments() {
     return {
-      pinger: new PolyphonicPinger(4),
+      pinger: withPolyphony(Pinger, 4, 'ping'),
       bass:   new Bass(),
       snare:  new Snare(),
-      kick:   new PolyphonicKick(2),
+      kick:   withPolyphony(Kick, 2, 'kick'),
     };
   }
 
