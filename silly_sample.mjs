@@ -2,10 +2,10 @@ import {withPolyphony} from './lib/instrument.mjs';
 import {I, down} from './lib/intervals.mjs';
 import N from './lib/pitches.mjs';
 import {getTimeAtBeat, times, Note, Simul, Seq, Chunk} from './lib/utils.mjs';
-import {Snare} from './lib/instruments/snare.mjs';
-import {Bass} from './lib/instruments/bass.mjs';
-import {Kick} from './lib/instruments/kick.mjs';
-import {Pinger} from './lib/instruments/pinger.mjs';
+import Snare from './lib/instruments/snare.mjs';
+import Bass from './lib/instruments/bass.mjs';
+import Kick from './lib/instruments/kick.mjs';
+import Pinger from './lib/instruments/pinger.mjs';
 import Piece from './lib/piece.mjs';
 
 class ImaginaryPiece extends Piece {
