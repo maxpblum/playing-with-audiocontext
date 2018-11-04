@@ -1,8 +1,8 @@
 import {I, down} from './lib/intervals.mjs';
 import N from './lib/pitches.mjs';
-import {ChordYeller} from './lib/instruments/chord_yeller.mjs';
-import {Twinkler} from './lib/instruments/twinkler.mjs';
-import {NoiseBass} from './lib/instruments/noise_bass.mjs';
+import ChordYeller from './lib/instruments/chord_yeller.mjs';
+import Twinkler from './lib/instruments/twinkler.mjs';
+import NoiseBass from './lib/instruments/noise_bass.mjs';
 import Piece from './lib/piece.mjs';
 import {getTimeAtBeat, Chunk, Seq, Simul, Note} from './lib/utils.mjs';
 

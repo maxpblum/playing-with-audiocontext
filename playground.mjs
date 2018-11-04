@@ -1,4 +1,4 @@
-import Instrument from './lib/instrument.mjs';
+import Organ from './lib/instruments/organ.mjs';
 import N from './lib/pitches.mjs';
 import OscillatorGroup from './lib/oscillator_group.mjs';
 import {arpeggiate, getTimeAtBeat} from './lib/utils.mjs';
@@ -86,7 +86,7 @@ const runMusic = () => {
   repeatingGroove(24);
 
   // Bass.
-  const bass = new Instrument(ctx, 'triangle', [1, 0.75, 0.5, 0.25, 0.15, 0.15]);
+  const bass = new Organ(ctx, 'triangle', [1, 0.75, 0.5, 0.25, 0.15, 0.15]);
   bass.connect(ctx.destination);
 
   // Define bass pitches
