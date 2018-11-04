@@ -1,0 +1,28 @@
+<head>
+<style>
+body {
+  font-family: 'Roboto', sans-serif;
+  width: 600px;
+}
+
+input {
+  font-size: 13px;
+}
+
+textarea {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+  <h1>Instrument Sandbox</h1>
+  <form id="testForm">
+    <label for="instrumentCode">Instrument definition</label>
+    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="instrumentCode" id="instrumentCode" rows="25" cols="100"></textarea>
+    <label for="eventCode">Test event definition</label>
+    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="eventCode" id="eventCode" rows="7" cols="100"></textarea>
+    <input id="submit" type="submit" value="Test"></input>
+  </form>
+  <script type="module" src="./test_an_instrument.mjs"></script>
+</body>
