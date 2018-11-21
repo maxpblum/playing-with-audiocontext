@@ -7,3 +7,4 @@ TODO: Detune effect
 TODO: Experiment with absence-of-sound in rhythm
 TODO: Filtering + controls
 TODO: Try out the existing system. Make some synths sing a bit.
+TODO: Make instruments initialize in the constructor
